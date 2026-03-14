@@ -15,7 +15,7 @@
       color: #00ff9c;
       font-family: "Courier New", monospace;
       font-size: 16px;
-      overflow: hidden;
+      overflow-x: hidden;
       position: relative;
       min-height: 100vh;
     }
@@ -27,22 +27,19 @@
       height: 100vh;
       z-index: -2;
     }
-    #hoodOutline {
-      position: relative;
-      z-index: 1;
-      margin: 30px auto 20px;
-      width: 200px;
-      height: 200px;
-    }
     h1 {
       text-align: center;
       color: #f7931a;
       font-size: 2.5rem;
+      margin-top: 20px;
       margin-bottom: 15px;
     }
     .terminal-container {
       display: flex;
       justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 15px;
     }
     .terminal {
       position: relative;
@@ -55,6 +52,7 @@
       padding: 10px;
       overflow-y: auto;
       color: #00ff9c;
+      margin-bottom: 10px;
     }
     .line {
       line-height: 1.4;
@@ -108,16 +106,13 @@
       text-align: center;
       color: #666;
       font-size: 0.9rem;
-      margin-top: 10px;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <!-- Matrix rain canvas -->
+  <!-- Matrix rain background -->
   <canvas id="matrix"></canvas>
-
-  <!-- Hooded Satoshi outline canvas -->
-  <canvas id="hoodOutline"></canvas>
 
   <h1>Bitcoin Block 0</h1>
 
@@ -137,7 +132,6 @@
     matrix.width = window.innerWidth;
     matrix.height = window.innerHeight;
 
-    // Symbols: 0, 1, and letters of BITCOIN
     const chars = "01BITCOIN";
     const fontSize = 14;
     const columns = Math.floor(matrix.width / fontSize);
@@ -160,31 +154,6 @@
       }
     }
     setInterval(drawMatrix, 50);
-
-    // --- HOODED OUTLINE (SATOSHI) --- //
-    const hood = document.getElementById("hoodOutline");
-    const ctxH = hood.getContext("2d");
-    hood.width = 200;
-    hood.height = 200;
-
-    ctxH.strokeStyle = "#00ff9c";
-    ctxH.lineWidth = 2;
-    ctxH.setLineDash([]);
-    ctxH.beginPath();
-
-    // Hood: rounded top over head
-    ctxH.moveTo(100, 30);                    // start top center
-    ctxH.quadraticCurveTo(60, 20, 40, 60);   // left hood curve
-    ctxH.quadraticCurveTo(40, 100, 100, 100); // under chin left to right
-    ctxH.quadraticCurveTo(160, 100, 160, 60); // right hood curve
-    ctxH.quadraticCurveTo(140, 20, 100, 30);  // close to center top
-
-    ctxH.stroke();
-
-    // Face oval inside hood
-    ctxH.beginPath();
-    ctxH.ellipse(100, 70, 30, 40, 0, 0, 2 * Math.PI);
-    ctxH.stroke();
 
     // --- TERMINAL + MINING LOGIC --- //
     const terminal = document.getElementById("terminal");
@@ -213,11 +182,49 @@
       terminal.appendChild(line);
       terminal.scrollTop = terminal.scrollHeight;
 
-      // Bounce coin if it's visible
       if (coin.style.opacity === "1") {
         coin.classList.add("bounce");
         setTimeout(() => coin.classList.remove("bounce"), 300);
       }
+    }
+
+    // Draw minimal hooded Satoshi outline below the terminal
+    function drawSatoshiOutline(parentEl) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 300;
+      canvas.height = 300;
+      canvas.style.margin = "20px auto 0";
+      canvas.style.display = "block";
+      canvas.style.maxWidth = "100%";
+      parentEl.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      ctx.strokeStyle = "#00ff9c";
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([]);
+      ctx.imageSmoothingEnabled = false;
+
+      // Hood outline (rounded top)
+      ctx.beginPath();
+      ctx.moveTo(150, 40);                    // top center
+      ctx.quadraticCurveTo(90, 20, 60, 70);   // left hood curve
+      ctx.quadraticCurveTo(60, 120, 150, 120); // under chin
+      ctx.quadraticCurveTo(240, 120, 240, 70); // right hood curve
+      ctx.quadraticCurveTo(210, 20, 150, 40);  // back to top
+      ctx.stroke();
+
+      // Face oval
+      ctx.beginPath();
+      ctx.ellipse(150, 90, 40, 50, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+
+      // Simple eyes (optional detail)
+      ctx.beginPath();
+      ctx.arc(135, 85, 2, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(165, 85, 2, 0, 2 * Math.PI);
+      ctx.stroke();
     }
 
     function mineStep() {
@@ -252,6 +259,8 @@
                             setTimeout(() => {
                               addLine("> welcome to bitcoin");
                               coin.style.opacity = "1";
+                              // Draw Satoshi outline after Genesis is revealed
+                              drawSatoshiOutline(terminal.parentElement);
                             }, 600);
                           }, 600);
                         }, 600);
@@ -276,11 +285,17 @@
       terminal.innerHTML = "";
       coin.style.opacity = "0";
 
+      // Clear any old Satoshi canvas from previous runs
+      const existingSatoshi = terminal.parentElement.querySelector("canvas");
+      if (existingSatoshi && existingSatoshi !== matrix) {
+        existingSatoshi.remove();
+      }
+
       addLine("> Start Mining");
       setTimeout(mineStep, 400);
     });
 
-    // Responsive canvas resize
+    // Resize matrix canvas on window resize
     window.addEventListener("resize", () => {
       matrix.width = window.innerWidth;
       matrix.height = window.innerHeight;
