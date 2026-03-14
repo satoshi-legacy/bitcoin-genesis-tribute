@@ -108,6 +108,17 @@
       font-size: 0.9rem;
       margin-top: 20px;
     }
+    #satoshi-image {
+      display: none;
+      margin: 20px auto 0;
+      max-width: 100%;
+    }
+    #satoshi-image img {
+      width: 180px;
+      height: auto;
+      border: 1px solid #00ff9c;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -119,6 +130,10 @@
   <div class="terminal-container">
     <div id="coin"></div>
     <div id="terminal" class="terminal"></div>
+    <!-- Placeholder for your Satoshi image -->
+    <div id="satoshi-image">
+      <img src="your-satoshi-image.png" alt="Satoshi Nakamoto">
+    </div>
   </div>
 
   <button id="startBtn">Start Mining</button>
@@ -159,6 +174,7 @@
     const terminal = document.getElementById("terminal");
     const coin = document.getElementById("coin");
     const startBtn = document.getElementById("startBtn");
+    const satoshiImage = document.getElementById("satoshi-image");
 
     const genesisTarget = "000000000019d6689c085ae165831e93";
     const coinbaseHex = "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73";
@@ -186,45 +202,6 @@
         coin.classList.add("bounce");
         setTimeout(() => coin.classList.remove("bounce"), 300);
       }
-    }
-
-    // Draw minimal hooded Satoshi outline below the terminal
-    function drawSatoshiOutline(parentEl) {
-      const canvas = document.createElement("canvas");
-      canvas.width = 300;
-      canvas.height = 300;
-      canvas.style.margin = "20px auto 0";
-      canvas.style.display = "block";
-      canvas.style.maxWidth = "100%";
-      parentEl.appendChild(canvas);
-
-      const ctx = canvas.getContext("2d");
-      ctx.strokeStyle = "#00ff9c";
-      ctx.lineWidth = 2.5;
-      ctx.setLineDash([]);
-      ctx.imageSmoothingEnabled = false;
-
-      // Hood outline (rounded top)
-      ctx.beginPath();
-      ctx.moveTo(150, 40);                    // top center
-      ctx.quadraticCurveTo(90, 20, 60, 70);   // left hood curve
-      ctx.quadraticCurveTo(60, 120, 150, 120); // under chin
-      ctx.quadraticCurveTo(240, 120, 240, 70); // right hood curve
-      ctx.quadraticCurveTo(210, 20, 150, 40);  // back to top
-      ctx.stroke();
-
-      // Face oval
-      ctx.beginPath();
-      ctx.ellipse(150, 90, 40, 50, 0, 0, 2 * Math.PI);
-      ctx.stroke();
-
-      // Simple eyes (optional detail)
-      ctx.beginPath();
-      ctx.arc(135, 85, 2, 0, 2 * Math.PI);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(165, 85, 2, 0, 2 * Math.PI);
-      ctx.stroke();
     }
 
     function mineStep() {
@@ -259,8 +236,8 @@
                             setTimeout(() => {
                               addLine("> welcome to bitcoin");
                               coin.style.opacity = "1";
-                              // Draw Satoshi outline after Genesis is revealed
-                              drawSatoshiOutline(terminal.parentElement);
+                              // Show your uploaded Satoshi image after Genesis block
+                              satoshiImage.style.display = "block";
                             }, 600);
                           }, 600);
                         }, 600);
@@ -284,12 +261,7 @@
       // Reset terminal
       terminal.innerHTML = "";
       coin.style.opacity = "0";
-
-      // Clear any old Satoshi canvas from previous runs
-      const existingSatoshi = terminal.parentElement.querySelector("canvas");
-      if (existingSatoshi && existingSatoshi !== matrix) {
-        existingSatoshi.remove();
-      }
+      satoshiImage.style.display = "none";
 
       addLine("> Start Mining");
       setTimeout(mineStep, 400);
