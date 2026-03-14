@@ -5,96 +5,94 @@
 <title>Bitcoin Genesis Block Tribute</title>
 
 <style>
-
 body{
-margin:0;
-background:black;
-color:#00ff9c;
-font-family:monospace;
-overflow:hidden;
+  margin:0;
+  background:black;
+  color:#00ff9c;
+  font-family:monospace;
+  overflow:hidden;
 }
 
-canvas{
-position:fixed;
-top:0;
-left:0;
-z-index:-1;
+#matrix{
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:-1;
 }
 
 .container{
-max-width:900px;
-margin:auto;
-padding:40px;
-text-align:center;
+  max-width:900px;
+  margin:auto;
+  padding:40px;
+  text-align:center;
 }
 
 .title{
-color:#f7931a;
-font-size:2.5em;
+  color:#f7931a;
+  font-size:2.5em;
 }
 
-#satoshiFace{
-display:block;
-margin:20px auto;
-background:#000;
-border-radius:50%;
-box-shadow:0 0 15px #000;
+#satoshiMask{
+  display:block;
+  margin:20px auto;
+  background:#000;
+  width:200px;
+  height:200px;
 }
 
 .terminal{
-background:#050505;
-border:1px solid #222;
-padding:20px;
-height:420px;
-overflow:auto;
-position:relative;
-z-index:1;
+  background:#050505;
+  border:1px solid #222;
+  padding:20px;
+  height:420px;
+  overflow:auto;
+  position:relative;
+  z-index:1;
 }
 
 .line{
-margin:6px 0;
+  margin:6px 0;
 }
 
 button{
-display:block;
-margin:20px auto;
-padding:10px 18px;
-background:#f7931a;
-border:none;
-font-family:monospace;
-cursor:pointer;
+  display:block;
+  margin:20px auto;
+  padding:10px 18px;
+  background:#f7931a;
+  border:none;
+  font-family:monospace;
+  cursor:pointer;
 }
 
 button:hover{
-background:#ffaa33;
+  background:#ffaa33;
 }
 
 .footer{
-text-align:center;
-margin-top:20px;
-color:#777;
+  text-align:center;
+  margin-top:20px;
+  color:#777;
 }
 
 .coin{
-position:absolute;
-width:80px;
-height:80px;
-top:-100px;
-left:50%;
-margin-left:-40px;
-background:radial-gradient(circle at 30% 30%, #f7931a 0%, #ffb733 60%, #f7931a 100%);
-border-radius:50%;
-box-shadow:0 0 20px #f7931a, 0 0 40px #ffb733, 0 0 60px #f7931a inset;
-display:none;
-font-weight:bold;
-color:black;
-line-height:80px;
-text-align:center;
-font-size:16px;
-transition: transform 0.2s, box-shadow 0.2s;
-z-index:2;
+  position:absolute;
+  width:80px;
+  height:80px;
+  top:-100px;
+  left:50%;
+  margin-left:-40px;
+  background:radial-gradient(circle at 30% 30%, #f7931a 0%, #ffb733 60%, #f7931a 100%);
+  border-radius:50%;
+  box-shadow:0 0 20px #f7931a,0 0 40px #ffb733,0 0 60px #f7931a inset;
+  display:none;
+  font-weight:bold;
+  color:black;
+  line-height:80px;
+  text-align:center;
+  font-size:16px;
+  transition:transform .2s,box-shadow .2s;
+  z-index:2;
 }
-
 </style>
 </head>
 
@@ -106,7 +104,7 @@ z-index:2;
 
 <h1 class="title">Bitcoin Block 0</h1>
 
-<canvas id="satoshiFace" width="180" height="180"></canvas>
+<canvas id="satoshiMask" width="200" height="200"></canvas>
 
 <div class="terminal" id="terminal">
 <div class="coin" id="coin">50 BTC</div>
@@ -121,298 +119,138 @@ Genesis Block Tribute
 </div>
 
 <script>
-
-/* MATRIX RAIN BACKGROUND */
-
-const canvas=document.getElementById("matrix")
-const ctx=canvas.getContext("2d")
-
-canvas.height=window.innerHeight
-canvas.width=window.innerWidth
+// ===== MATRIX RAIN =====
+const matrixCanvas=document.getElementById("matrix")
+const mCtx=matrixCanvas.getContext("2d")
+matrixCanvas.height=window.innerHeight
+matrixCanvas.width=window.innerWidth
 
 const letters="01BITCOIN"
 const fontSize=14
-const columns=canvas.width/fontSize
-
+const columns=matrixCanvas.width/fontSize
 const drops=[]
+for(let i=0;i<columns;i++) drops[i]=1
 
-for(let x=0;x<columns;x++) drops[x]=1
-
-function draw(){
-
-ctx.fillStyle="rgba(0,0,0,0.05)"
-ctx.fillRect(0,0,canvas.width,canvas.height)
-
-ctx.fillStyle="#0f0"
-ctx.font=fontSize+"px monospace"
-
-for(let i=0;i<drops.length;i++){
-
-const text=letters[Math.floor(Math.random()*letters.length)]
-
-ctx.fillText(text,i*fontSize,drops[i]*fontSize)
-
-if(drops[i]*fontSize>canvas.height && Math.random()>0.975)
-drops[i]=0
-
-drops[i]++
-
+function drawMatrix(){
+  mCtx.fillStyle="rgba(0,0,0,0.05)"
+  mCtx.fillRect(0,0,matrixCanvas.width,matrixCanvas.height)
+  mCtx.fillStyle="#0f0"
+  mCtx.font=fontSize+"px monospace"
+  for(let i=0;i<drops.length;i++){
+    const text=letters[Math.floor(Math.random()*letters.length)]
+    mCtx.fillText(text,i*fontSize,drops[i]*fontSize)
+    if(drops[i]*fontSize>matrixCanvas.height && Math.random()>0.975) drops[i]=0
+    drops[i]++
+  }
 }
+setInterval(drawMatrix,35)
 
-}
-
-setInterval(draw,35)
-
-
-
-/* SATOSHI MATRIX FACE */
-
-const faceCanvas=document.getElementById("satoshiFace")
+// ===== SATOSHI SILHOUETTE =====
+const faceCanvas=document.getElementById("satoshiMask")
 const faceCtx=faceCanvas.getContext("2d")
+const size=200
+const cell=10
+const hex="abcdef0123456789"
 
-const faceCanvas=document.getElementById("satoshiFace")
-const faceCtx=faceCanvas.getContext("2d")
-
-const chars="01BITCOIN"
-
-const width=180
-const height=180
-const cell=8
-
-function drawFace(){
-
-faceCtx.clearRect(0,0,width,height)
-
-faceCtx.fillStyle="#00ff9c"
-faceCtx.font=cell+"px monospace"
-
-for(let y=0;y<height;y+=cell){
-
-for(let x=0;x<width;x+=cell){
-
-let draw=false
-
-/* HEAD */
-let dx=x-90
-let dy=y-90
-let dist=Math.sqrt(dx*dx+dy*dy)
-
-if(dist<70) draw=true
-
-/* HOOD SHADOW */
-if(y<70 && Math.abs(x-90)<60) draw=true
-
-/* FACE CUTOUT */
-if(dist<35) draw=false
-
-if(draw){
-
-let c=chars[Math.floor(Math.random()*chars.length)]
-
-faceCtx.fillText(c,x,y)
-
+function insideSilhouette(x,y){
+  let dx=x-100
+  let dy=y-100
+  let dist=Math.sqrt(dx*dx+dy*dy)
+  if(dist<85) return true  // hood
+  if(dist<40) return false // face opening
+  if(y<70 && Math.abs(x-100)<75) return true // hood top
+  return false
 }
 
+function drawSilhouette(){
+  faceCtx.clearRect(0,0,size,size)
+  faceCtx.fillStyle="#00ff9c"
+  faceCtx.font="10px monospace"
+  for(let y=0;y<size;y+=cell){
+    for(let x=0;x<size;x+=cell){
+      if(insideSilhouette(x,y)){
+        const c=hex[Math.floor(Math.random()*hex.length)]
+        faceCtx.fillText(c,x,y)
+      }
+    }
+  }
+  requestAnimationFrame(drawSilhouette)
 }
+drawSilhouette()
 
-}
-
-requestAnimationFrame(drawFace)
-
-}
-
-drawFace()
-
-
-const chars="01BITCOIN"
-const size=180
-const fSize=8
-
-let map=[]
-
-faceImg.onload=()=>{
-
-faceCtx.drawImage(faceImg,0,0,size,size)
-
-const data=faceCtx.getImageData(0,0,size,size).data
-
-for(let y=0;y<size;y+=fSize){
-
-let row=[]
-
-for(let x=0;x<size;x+=fSize){
-
-const i=(y*size+x)*4
-
-const r=data[i]
-const g=data[i+1]
-const b=data[i+2]
-
-const bright=(r+g+b)/3
-
-row.push(bright<150?1:0)
-
-}
-
-map.push(row)
-
-}
-
-animateFace()
-
-}
-
-function animateFace(){
-
-faceCtx.clearRect(0,0,size,size)
-
-faceCtx.font=fSize+"px monospace"
-faceCtx.fillStyle="#00ff9c"
-
-for(let y=0;y<map.length;y++){
-
-for(let x=0;x<map[y].length;x++){
-
-if(map[y][x]){
-
-const c=chars[Math.floor(Math.random()*chars.length)]
-
-faceCtx.fillText(c,x*fSize,y*fSize)
-
-}
-
-}
-
-}
-
-requestAnimationFrame(animateFace)
-
-}
-
-
-
-/* TERMINAL MINING */
-
+// ===== TERMINAL MINING =====
 const term=document.getElementById("terminal")
 const coin=document.getElementById("coin")
 
 function line(text){
+  const div=document.createElement("div")
+  div.className="line"
+  div.textContent=text
+  term.appendChild(div)
+  term.scrollTop=term.scrollHeight
 
-const div=document.createElement("div")
-div.className="line"
-div.textContent=text
-
-term.appendChild(div)
-term.scrollTop=term.scrollHeight
-
-if(coin.style.display==="block"){
-
-coin.style.transform="translateY(-20px) scale(1.2)"
-
-setTimeout(()=>{
-
-coin.style.transform="translateY(0) scale(1)"
-
-},180)
-
-}
-
+  if(coin.style.display==="block"){
+    coin.style.transform="translateY(-20px) scale(1.2)"
+    setTimeout(()=>{
+      coin.style.transform="translateY(0) scale(1)"
+    },180)
+  }
 }
 
 function start(){
-
-term.innerHTML=""
-coin.style.display="none"
-
-line("> initializing node...")
-line("> connecting to network...")
-line("> blockchain height: 0")
-line("> starting proof-of-work")
-
-setTimeout(hashAnimation,1500)
-
+  term.innerHTML=""
+  coin.style.display="none"
+  line("> initializing node...")
+  line("> connecting to network...")
+  line("> blockchain height: 0")
+  line("> starting proof-of-work")
+  setTimeout(hashAnimation,1500)
 }
 
-
-
-/* HASH SIMULATION */
-
+// ===== HASH SIMULATION =====
 const finalHash="000000000019d6689c085ae165831e93"
-
 function randomHex(){
-
-const chars="abcdef0123456789"
-
-let out=""
-
-for(let i=0;i<finalHash.length;i++)
-out+=chars[Math.floor(Math.random()*chars.length)]
-
-return out
-
+  let out=""
+  for(let i=0;i<finalHash.length;i++)
+    out+=hex[Math.floor(Math.random()*hex.length)]
+  return out
 }
 
 function hashAnimation(){
-
-let i=0
-
-const interval=setInterval(()=>{
-
-let attempt=randomHex()
-
-line("> hash attempt: "+attempt)
-
-if(i<finalHash.length){
-
-let current=finalHash.substring(0,i+1)
-
-let fake=current+randomHex().substring(i+1)
-
-line("> "+fake)
-
-i++
-
-}else{
-
-clearInterval(interval)
-
-line("")
-line("> valid block discovered")
-line("> hash: "+finalHash)
-line("")
-line("> reading coinbase data...")
-
-setTimeout(showMessage,1200)
-
+  let i=0
+  const interval=setInterval(()=>{
+    let attempt=randomHex()
+    line("> hash attempt: "+attempt)
+    if(i<finalHash.length){
+      let current=finalHash.substring(0,i+1)
+      let fake=current+randomHex().substring(i+1)
+      line("> "+fake)
+      i++
+    }else{
+      clearInterval(interval)
+      line("")
+      line("> valid block discovered")
+      line("> hash: "+finalHash)
+      line("")
+      line("> reading coinbase data...")
+      setTimeout(showMessage,1200)
+    }
+  },350)
 }
 
-},350)
-
-}
-
-
-
-/* MESSAGE + COIN */
-
+// ===== MESSAGE + COIN =====
 function showMessage(){
-
-line("> decoding hex payload...")
-line("> 5468652054696d65732030332f4a616e2f32303039...")
-
-setTimeout(()=>{
-
-line("")
-line("> The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")
-line("")
-line("> genesis block mined")
-line("> welcome to bitcoin")
-
-coin.style.display="block"
-
-},1200)
-
+  line("> decoding hex payload...")
+  line("> 5468652054696d65732030332f4a616e2f32303039...")
+  setTimeout(()=>{
+    line("")
+    line("> The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")
+    line("")
+    line("> genesis block mined")
+    line("> welcome to bitcoin")
+    coin.style.display="block"
+  },1200)
 }
-
 </script>
 
 </body>
