@@ -1,208 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Bitcoin Genesis Block Tribute</title>
-<style>
-body {
-  margin:0;
-  overflow:hidden;
-  background:black;
-  font-family:monospace;
-}
-canvas {
-  position:fixed;
-  top:0;
-  left:0;
-  z-index:-1;
-}
-.container {
-  max-width:900px;
-  margin:auto;
-  padding:40px;
-  text-align:center;
-  color:#f7931a;
-}
-.title {
-  font-size:2.5em;
-  margin-bottom:20px;
-}
-.terminal {
-  background:#050505;
-  border:1px solid #222;
-  padding:20px;
-  height:300px;
-  overflow:auto;
-  position:relative;
-  margin-top:20px;
-  color:#00ff9c;
-}
-.line {
-  margin:4px 0;
-}
-button {
-  display:block;
-  margin:20px auto;
-  padding:10px 16px;
-  background:#f7931a;
-  border:none;
-  cursor:pointer;
-}
-button:hover { background:#ffaa33; }
-.coin {
-  position:absolute;
-  width:80px;
-  height:80px;
-  top:-100px;
-  left:50%;
-  margin-left:-40px;
-  background:radial-gradient(circle at 30% 30%, #f7931a 0%, #ffb733 60%, #f7931a 100%);
-  border-radius:50%;
-  box-shadow:0 0 20px #f7931a,0 0 40px #ffb733,0 0 60px #f7931a inset;
-  display:none;
-  font-weight:bold;
-  color:black;
-  line-height:80px;
-  text-align:center;
-  font-size:16px;
-  transition:transform 0.2s,box-shadow 0.2s;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bitcoin Genesis Block Tribute</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #000;
+      color: #00ff9c;
+      font-family: "Courier New", monospace;
+      font-size: 16px;
+      overflow: hidden;
+      position: relative;
+      min-height: 100vh;
+    }
+    #matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+    }
+    #hoodOutline {
+      position: relative;
+      z-index: 1;
+      margin: 30px auto 20px;
+      width: 200px;
+      height: 200px;
+    }
+    h1 {
+      text-align: center;
+      color: #f7931a;
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+    .terminal-container {
+      display: flex;
+      justify-content: center;
+    }
+    .terminal {
+      position: relative;
+      width: 80%;
+      max-width: 700px;
+      height: 300px;
+      background: #050505;
+      border: 1px solid #111;
+      border-radius: 4px;
+      padding: 10px;
+      overflow-y: auto;
+      color: #00ff9c;
+    }
+    .line {
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+    #coin {
+      position: absolute;
+      top: -70px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle at 30% 30%, #f7931a, #c66e00);
+      border-radius: 50%;
+      box-shadow:
+        0 0 15px #f7931a,
+        0 0 30px rgba(247, 147, 26, 0.5);
+      opacity: 0;
+      transition: transform 0.2s ease;
+      z-index: 2;
+    }
+    .bounce {
+      animation: coinBounce 0.3s ease-in-out;
+    }
+    @keyframes coinBounce {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+      }
+      50% {
+        transform: translateY(-6px) scale(1.05);
+      }
+    }
+    button {
+      display: block;
+      margin: 25px auto 15px;
+      padding: 10px 30px;
+      background: #f7931a;
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #ffb040;
+    }
+    footer {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
+  <!-- Matrix rain canvas -->
+  <canvas id="matrix"></canvas>
 
-<canvas id="matrix"></canvas>
-<canvas id="hoodOutline" width="200" height="200" style="position:absolute; top:50px; left:50%; margin-left:-100px;"></canvas>
+  <!-- Hooded Satoshi outline canvas -->
+  <canvas id="hoodOutline"></canvas>
 
-<div class="container">
-<h1 class="title">Bitcoin Block 0</h1>
+  <h1>Bitcoin Block 0</h1>
 
-<div class="terminal" id="terminal">
-  <div class="coin" id="coin">50 BTC</div>
-</div>
+  <div class="terminal-container">
+    <div id="coin"></div>
+    <div id="terminal" class="terminal"></div>
+  </div>
 
-<button onclick="start()">Start Mining</button>
-<div class="footer">Genesis Block Tribute</div>
-</div>
+  <button id="startBtn">Start Mining</button>
 
-<script>
-// ===== MATRIX RAIN =====
-const canvas=document.getElementById("matrix");
-const ctx=canvas.getContext("2d");
-canvas.height=window.innerHeight;
-canvas.width=window.innerWidth;
-const letters="01BITCOIN";
-const fontSize=14;
-const columns=canvas.width/fontSize;
-const drops=[];
-for(let i=0;i<columns;i++) drops[i]=1;
+  <footer>Genesis Block Tribute</footer>
 
-function drawMatrix(){
-  ctx.fillStyle="rgba(0,0,0,0.05)";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="#0f0";
-  ctx.font=fontSize+"px monospace";
-  for(let i=0;i<drops.length;i++){
-    const text=letters[Math.floor(Math.random()*letters.length)];
-    ctx.fillText(text,i*fontSize,drops[i]*fontSize);
-    if(drops[i]*fontSize>canvas.height && Math.random()>0.975) drops[i]=0;
-    drops[i]++;
-  }
-}
-setInterval(drawMatrix,35);
+  <script>
+    // --- MATRIX RAIN --- //
+    const matrix = document.getElementById("matrix");
+    const ctxM = matrix.getContext("2d");
+    matrix.width = window.innerWidth;
+    matrix.height = window.innerHeight;
 
-// ===== HOODED OUTLINE =====
-const hoodCanvas=document.getElementById("hoodOutline");
-const hoodCtx=hoodCanvas.getContext("2d");
+    // Symbols: 0, 1, and letters of BITCOIN
+    const chars = "01BITCOIN";
+    const fontSize = 14;
+    const columns = Math.floor(matrix.width / fontSize);
+    const drops = Array(columns).fill(1);
 
-function drawHoodOutline(){
-  hoodCtx.clearRect(0,0,200,200);
-  hoodCtx.strokeStyle="#00ff9c";
-  hoodCtx.lineWidth=2;
-  hoodCtx.beginPath();
-  // simple hood shape
-  hoodCtx.moveTo(50,20);
-  hoodCtx.quadraticCurveTo(100,-20,150,20);
-  hoodCtx.quadraticCurveTo(180,100,150,180);
-  hoodCtx.lineTo(50,180);
-  hoodCtx.quadraticCurveTo(20,100,50,20);
-  hoodCtx.stroke();
-  // face inner oval
-  hoodCtx.beginPath();
-  hoodCtx.ellipse(100,100,35,50,0,0,2*Math.PI);
-  hoodCtx.stroke();
-}
-drawHoodOutline();
+    function drawMatrix() {
+      ctxM.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctxM.fillRect(0, 0, matrix.width, matrix.height);
+      ctxM.fillStyle = "#00ff9c";
+      ctxM.font = fontSize + "px monospace";
 
-// ===== TERMINAL MINING =====
-const term=document.getElementById("terminal");
-const coin=document.getElementById("coin");
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctxM.fillText(text, i * fontSize, drops[i] * fontSize);
 
-function line(text){
-  const div=document.createElement("div");
-  div.className="line";
-  div.textContent=text;
-  term.appendChild(div);
-  term.scrollTop=term.scrollHeight;
-  if(coin.style.display==="block"){
-    coin.style.transform="translateY(-20px) scale(1.2)";
-    setTimeout(()=>{coin.style.transform="translateY(0) scale(1)";},180);
-  }
-}
-
-function start(){
-  term.innerHTML="";
-  coin.style.display="none";
-  line("> initializing node...");
-  line("> connecting to network...");
-  line("> blockchain height: 0");
-  line("> starting proof-of-work");
-  setTimeout(hashAnimation,1500);
-}
-
-// ===== HASH SIMULATION =====
-const finalHash="000000000019d6689c085ae165831e93";
-function randomHex(){
-  let out="";
-  for(let i=0;i<finalHash.length;i++) out+="abcdef0123456789"[Math.floor(Math.random()*16)];
-  return out;
-}
-
-function hashAnimation(){
-  let i=0;
-  const interval=setInterval(()=>{
-    const attempt=randomHex();
-    line("> hash attempt: "+attempt);
-    if(i<finalHash.length){
-      let current=finalHash.substring(0,i+1);
-      let fake=current+randomHex().substring(i+1);
-      line("> "+fake);
-      i++;
-    }else{
-      clearInterval(interval);
-      line("");
-      line("> valid block discovered");
-      line("> hash: "+finalHash);
-      line("");
-      line("> reading coinbase data...");
-      setTimeout(showMessage,1200);
+        if (drops[i] * fontSize > matrix.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
     }
-  },350);
-}
+    setInterval(drawMatrix, 50);
 
-// ===== MESSAGE + COIN =====
-function showMessage(){
-  line("> decoding hex payload...");
-  line("> 5468652054696d65732030332f4a616e2f32303039...");
-  setTimeout(()=>{
-    line("");
-    line("> The Times 03/Jan/2009 Chancellor on brink of second bailout for banks");
-    line("");
-    line("> genesis block mined");
-    line("> welcome to bitcoin");
-    coin.style.display="block";
-  },1200);
-}
-</script>
+    // --- HOODED OUTLINE (SATOSHI) --- //
+    const hood = document.getElementById("hoodOutline");
+    const ctxH = hood.getContext("2d");
+    hood.width = 200;
+    hood.height = 200;
+
+    ctxH.strokeStyle = "#00ff9c";
+    ctxH.lineWidth = 2;
+    ctxH.setLineDash([]);
+    ctxH.beginPath();
+
+    // Hood: rounded top over head
+    ctxH.moveTo(100, 30);                    // start top center
+    ctxH.quadraticCurveTo(60, 20, 40, 60);   // left hood curve
+    ctxH.quadraticCurveTo(40, 100, 100, 100); // under chin left to right
+    ctxH.quadraticCurveTo(160, 100, 160, 60); // right hood curve
+    ctxH.quadraticCurveTo(140, 20, 100, 30);  // close to center top
+
+    ctxH.stroke();
+
+    // Face oval inside hood
+    ctxH.beginPath();
+    ctxH.ellipse(100, 70, 30, 40, 0, 0, 2 * Math.PI);
+    ctxH.stroke();
+
+    // --- TERMINAL + MINING LOGIC --- //
+    const terminal = document.getElementById("terminal");
+    const coin = document.getElementById("coin");
+    const startBtn = document.getElementById("startBtn");
+
+    const genesisTarget = "000000000019d6689c085ae165831e93";
+    const coinbaseHex = "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73";
+    const genesisMessage = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
+
+    let running = false;
+    let hashStep = 0;
+    const fakeHashes = [
+      "000000000000000000000000000000fe",
+      "000000000000000000000000000000fc",
+      "000000000000000000000000000000f8",
+      "000000000000000000000000000000f0",
+      "000000000000000000000000000000e0",
+      "000000000019d6689c085ae165831e93"
+    ];
+
+    function addLine(text) {
+      const line = document.createElement("div");
+      line.className = "line";
+      line.textContent = text;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+
+      // Bounce coin if it's visible
+      if (coin.style.opacity === "1") {
+        coin.classList.add("bounce");
+        setTimeout(() => coin.classList.remove("bounce"), 300);
+      }
+    }
+
+    function mineStep() {
+      if (!running) return;
+
+      if (hashStep === 0) {
+        addLine("> initializing node...");
+        setTimeout(() => addLine("> connecting to network..."), 800);
+        setTimeout(() => addLine("> blockchain height: 0"), 1600);
+        setTimeout(() => addLine("> starting proof-of-work"), 2400);
+
+        setTimeout(() => {
+          addLine(`> difficulty: 1`);
+          setTimeout(() => {
+            addLine(`> hash attempt 1: ${fakeHashes[0]}`);
+            setTimeout(() => {
+              addLine(`> hash attempt 2: ${fakeHashes[1]}`);
+              setTimeout(() => {
+                addLine(`> hash attempt 3: ${fakeHashes[2]}`);
+                setTimeout(() => {
+                  addLine(`> hash attempt 4: ${fakeHashes[3]}`);
+                  setTimeout(() => {
+                    addLine(`> hash attempt 5: ${fakeHashes[4]}`);
+                    setTimeout(() => {
+                      addLine(`> hash attempt 6: ${fakeHashes[5]}`);
+                      setTimeout(() => {
+                        addLine(`> coinbase (hex): ${coinbaseHex}`);
+                        setTimeout(() => {
+                          addLine(`> coinbase decoded: ${genesisMessage}`);
+                          setTimeout(() => {
+                            addLine("> genesis block mined");
+                            setTimeout(() => {
+                              addLine("> welcome to bitcoin");
+                              coin.style.opacity = "1";
+                            }, 600);
+                          }, 600);
+                        }, 600);
+                      }, 600);
+                    }, 600);
+                  }, 600);
+                }, 600);
+              }, 600);
+            }, 600);
+          }, 600);
+        }, 3200);
+      }
+
+      hashStep++;
+    }
+
+    startBtn.addEventListener("click", () => {
+      if (running) return;
+      running = true;
+
+      // Reset terminal
+      terminal.innerHTML = "";
+      coin.style.opacity = "0";
+
+      addLine("> Start Mining");
+      setTimeout(mineStep, 400);
+    });
+
+    // Responsive canvas resize
+    window.addEventListener("resize", () => {
+      matrix.width = window.innerWidth;
+      matrix.height = window.innerHeight;
+    });
+  </script>
 </body>
 </html>
