@@ -3,78 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <title>Bitcoin Genesis Block Tribute</title>
-
 <style>
-body{
+body {
   margin:0;
-  background:black;
-  color:#00ff9c;
-  font-family:monospace;
   overflow:hidden;
+  background:black;
+  font-family:monospace;
 }
-
-#matrix{
+canvas {
   position:fixed;
   top:0;
   left:0;
   z-index:-1;
 }
-
-.container{
+.container {
   max-width:900px;
   margin:auto;
   padding:40px;
   text-align:center;
-}
-
-.title{
   color:#f7931a;
+}
+.title {
   font-size:2.5em;
+  margin-bottom:20px;
 }
-
-#satoshiMask{
-  display:block;
-  margin:20px auto;
-  background:#000;
-  width:200px;
-  height:200px;
-}
-
-.terminal{
+.terminal {
   background:#050505;
   border:1px solid #222;
   padding:20px;
-  height:420px;
+  height:300px;
   overflow:auto;
   position:relative;
-  z-index:1;
+  margin-top:20px;
+  color:#00ff9c;
 }
-
-.line{
-  margin:6px 0;
+.line {
+  margin:4px 0;
 }
-
-button{
+button {
   display:block;
   margin:20px auto;
-  padding:10px 18px;
+  padding:10px 16px;
   background:#f7931a;
   border:none;
-  font-family:monospace;
   cursor:pointer;
 }
-
-button:hover{
-  background:#ffaa33;
-}
-
-.footer{
-  text-align:center;
-  margin-top:20px;
-  color:#777;
-}
-
-.coin{
+button:hover { background:#ffaa33; }
+.coin {
   position:absolute;
   width:80px;
   height:80px;
@@ -90,168 +65,144 @@ button:hover{
   line-height:80px;
   text-align:center;
   font-size:16px;
-  transition:transform .2s,box-shadow .2s;
-  z-index:2;
+  transition:transform 0.2s,box-shadow 0.2s;
 }
 </style>
 </head>
-
 <body>
 
 <canvas id="matrix"></canvas>
+<canvas id="hoodOutline" width="200" height="200" style="position:absolute; top:50px; left:50%; margin-left:-100px;"></canvas>
 
 <div class="container">
-
 <h1 class="title">Bitcoin Block 0</h1>
 
-<canvas id="satoshiMask" width="200" height="200"></canvas>
-
 <div class="terminal" id="terminal">
-<div class="coin" id="coin">50 BTC</div>
+  <div class="coin" id="coin">50 BTC</div>
 </div>
 
 <button onclick="start()">Start Mining</button>
-
-<div class="footer">
-Genesis Block Tribute
-</div>
-
+<div class="footer">Genesis Block Tribute</div>
 </div>
 
 <script>
 // ===== MATRIX RAIN =====
-const matrixCanvas=document.getElementById("matrix")
-const mCtx=matrixCanvas.getContext("2d")
-matrixCanvas.height=window.innerHeight
-matrixCanvas.width=window.innerWidth
-
-const letters="01BITCOIN"
-const fontSize=14
-const columns=matrixCanvas.width/fontSize
-const drops=[]
-for(let i=0;i<columns;i++) drops[i]=1
+const canvas=document.getElementById("matrix");
+const ctx=canvas.getContext("2d");
+canvas.height=window.innerHeight;
+canvas.width=window.innerWidth;
+const letters="01BITCOIN";
+const fontSize=14;
+const columns=canvas.width/fontSize;
+const drops=[];
+for(let i=0;i<columns;i++) drops[i]=1;
 
 function drawMatrix(){
-  mCtx.fillStyle="rgba(0,0,0,0.05)"
-  mCtx.fillRect(0,0,matrixCanvas.width,matrixCanvas.height)
-  mCtx.fillStyle="#0f0"
-  mCtx.font=fontSize+"px monospace"
+  ctx.fillStyle="rgba(0,0,0,0.05)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#0f0";
+  ctx.font=fontSize+"px monospace";
   for(let i=0;i<drops.length;i++){
-    const text=letters[Math.floor(Math.random()*letters.length)]
-    mCtx.fillText(text,i*fontSize,drops[i]*fontSize)
-    if(drops[i]*fontSize>matrixCanvas.height && Math.random()>0.975) drops[i]=0
-    drops[i]++
+    const text=letters[Math.floor(Math.random()*letters.length)];
+    ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+    if(drops[i]*fontSize>canvas.height && Math.random()>0.975) drops[i]=0;
+    drops[i]++;
   }
 }
-setInterval(drawMatrix,35)
+setInterval(drawMatrix,35);
 
-// ===== SATOSHI SILHOUETTE =====
-const faceCanvas=document.getElementById("satoshiMask")
-const faceCtx=faceCanvas.getContext("2d")
-const size=200
-const cell=10
-const hex="abcdef0123456789"
+// ===== HOODED OUTLINE =====
+const hoodCanvas=document.getElementById("hoodOutline");
+const hoodCtx=hoodCanvas.getContext("2d");
 
-function insideSilhouette(x,y){
-  let dx=x-100
-  let dy=y-100
-  let dist=Math.sqrt(dx*dx+dy*dy)
-  if(dist<85) return true  // hood
-  if(dist<40) return false // face opening
-  if(y<70 && Math.abs(x-100)<75) return true // hood top
-  return false
+function drawHoodOutline(){
+  hoodCtx.clearRect(0,0,200,200);
+  hoodCtx.strokeStyle="#00ff9c";
+  hoodCtx.lineWidth=2;
+  hoodCtx.beginPath();
+  // simple hood shape
+  hoodCtx.moveTo(50,20);
+  hoodCtx.quadraticCurveTo(100,-20,150,20);
+  hoodCtx.quadraticCurveTo(180,100,150,180);
+  hoodCtx.lineTo(50,180);
+  hoodCtx.quadraticCurveTo(20,100,50,20);
+  hoodCtx.stroke();
+  // face inner oval
+  hoodCtx.beginPath();
+  hoodCtx.ellipse(100,100,35,50,0,0,2*Math.PI);
+  hoodCtx.stroke();
 }
-
-function drawSilhouette(){
-  faceCtx.clearRect(0,0,size,size)
-  faceCtx.fillStyle="#00ff9c"
-  faceCtx.font="10px monospace"
-  for(let y=0;y<size;y+=cell){
-    for(let x=0;x<size;x+=cell){
-      if(insideSilhouette(x,y)){
-        const c=hex[Math.floor(Math.random()*hex.length)]
-        faceCtx.fillText(c,x,y)
-      }
-    }
-  }
-  requestAnimationFrame(drawSilhouette)
-}
-drawSilhouette()
+drawHoodOutline();
 
 // ===== TERMINAL MINING =====
-const term=document.getElementById("terminal")
-const coin=document.getElementById("coin")
+const term=document.getElementById("terminal");
+const coin=document.getElementById("coin");
 
 function line(text){
-  const div=document.createElement("div")
-  div.className="line"
-  div.textContent=text
-  term.appendChild(div)
-  term.scrollTop=term.scrollHeight
-
+  const div=document.createElement("div");
+  div.className="line";
+  div.textContent=text;
+  term.appendChild(div);
+  term.scrollTop=term.scrollHeight;
   if(coin.style.display==="block"){
-    coin.style.transform="translateY(-20px) scale(1.2)"
-    setTimeout(()=>{
-      coin.style.transform="translateY(0) scale(1)"
-    },180)
+    coin.style.transform="translateY(-20px) scale(1.2)";
+    setTimeout(()=>{coin.style.transform="translateY(0) scale(1)";},180);
   }
 }
 
 function start(){
-  term.innerHTML=""
-  coin.style.display="none"
-  line("> initializing node...")
-  line("> connecting to network...")
-  line("> blockchain height: 0")
-  line("> starting proof-of-work")
-  setTimeout(hashAnimation,1500)
+  term.innerHTML="";
+  coin.style.display="none";
+  line("> initializing node...");
+  line("> connecting to network...");
+  line("> blockchain height: 0");
+  line("> starting proof-of-work");
+  setTimeout(hashAnimation,1500);
 }
 
 // ===== HASH SIMULATION =====
-const finalHash="000000000019d6689c085ae165831e93"
+const finalHash="000000000019d6689c085ae165831e93";
 function randomHex(){
-  let out=""
-  for(let i=0;i<finalHash.length;i++)
-    out+=hex[Math.floor(Math.random()*hex.length)]
-  return out
+  let out="";
+  for(let i=0;i<finalHash.length;i++) out+="abcdef0123456789"[Math.floor(Math.random()*16)];
+  return out;
 }
 
 function hashAnimation(){
-  let i=0
+  let i=0;
   const interval=setInterval(()=>{
-    let attempt=randomHex()
-    line("> hash attempt: "+attempt)
+    const attempt=randomHex();
+    line("> hash attempt: "+attempt);
     if(i<finalHash.length){
-      let current=finalHash.substring(0,i+1)
-      let fake=current+randomHex().substring(i+1)
-      line("> "+fake)
-      i++
+      let current=finalHash.substring(0,i+1);
+      let fake=current+randomHex().substring(i+1);
+      line("> "+fake);
+      i++;
     }else{
-      clearInterval(interval)
-      line("")
-      line("> valid block discovered")
-      line("> hash: "+finalHash)
-      line("")
-      line("> reading coinbase data...")
-      setTimeout(showMessage,1200)
+      clearInterval(interval);
+      line("");
+      line("> valid block discovered");
+      line("> hash: "+finalHash);
+      line("");
+      line("> reading coinbase data...");
+      setTimeout(showMessage,1200);
     }
-  },350)
+  },350);
 }
 
 // ===== MESSAGE + COIN =====
 function showMessage(){
-  line("> decoding hex payload...")
-  line("> 5468652054696d65732030332f4a616e2f32303039...")
+  line("> decoding hex payload...");
+  line("> 5468652054696d65732030332f4a616e2f32303039...");
   setTimeout(()=>{
-    line("")
-    line("> The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")
-    line("")
-    line("> genesis block mined")
-    line("> welcome to bitcoin")
-    coin.style.display="block"
-  },1200)
+    line("");
+    line("> The Times 03/Jan/2009 Chancellor on brink of second bailout for banks");
+    line("");
+    line("> genesis block mined");
+    line("> welcome to bitcoin");
+    coin.style.display="block";
+  },1200);
 }
 </script>
-
 </body>
 </html>
